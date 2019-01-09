@@ -1,0 +1,78 @@
+image: golang:latest
+pipelines:
+  default:
+    - step:
+        name: Dependencies
+        services:
+            - docker
+        script:
+            # Prepare the environment
+            - export PATH="${GOPATH}/bin:$PATH" SRCDIR="${GOPATH}/src/bitbucket.org/asecurityteam/repocontract-test"
+            - mkdir -p "${GOPATH}/bin" "${GOPATH}/src/bitbucket.org/asecurityteam" && ln -s "${BITBUCKET_CLONE_DIR}" "${SRCDIR}" && cd "${SRCDIR}"
+            - apt-get update && apt-get install -y apt-transport-https ca-certificates make curl gcc git bc jq
+
+            # Download and install all dependencies
+            - make dep
+        artifacts:
+            - .builds/**
+            - vendor/**
+
+    - parallel:
+      - step:
+          name: Linting
+          services:
+            - docker
+          script:
+            # Prepare the environment
+            - export PATH="${GOPATH}/bin:$PATH" SRCDIR="${GOPATH}/src/bitbucket.org/asecurityteam/repocontract-test"
+            - mkdir -p "${GOPATH}/bin" "${GOPATH}/src/bitbucket.org/asecurityteam" && ln -s "${BITBUCKET_CLONE_DIR}" "${SRCDIR}" && cd "${SRCDIR}"
+            - apt-get update && apt-get install -y apt-transport-https ca-certificates make curl gcc git bc jq
+
+            # Lint
+            - make lint
+
+      - step:
+          name: Tests
+          services:
+            - docker
+          script:
+            # Prepare the environment
+            - export PATH="${GOPATH}/bin:$PATH" SRCDIR="${GOPATH}/src/bitbucket.org/asecurityteam/repocontract-test"
+            - mkdir -p "${GOPATH}/bin" "${GOPATH}/src/bitbucket.org/asecurityteam" && ln -s "${BITBUCKET_CLONE_DIR}" "${SRCDIR}" && cd "${SRCDIR}"
+            - apt-get update && apt-get install -y apt-transport-https ca-certificates make curl gcc git bc jq
+
+            # Run the tests
+            - make test
+          artifacts:
+            - .coverage/unit.cover.out
+
+      - step:
+          name: Integration
+          services:
+            - docker
+          script:
+            # Prepare the environment
+            - export PATH="${GOPATH}/bin:$PATH" SRCDIR="${GOPATH}/src/bitbucket.org/asecurityteam/repocontract-test"
+            - mkdir -p "${GOPATH}/bin" "${GOPATH}/src/bitbucket.org/asecurityteam" && ln -s "${BITBUCKET_CLONE_DIR}" "${SRCDIR}" && cd "${SRCDIR}"
+            - apt-get update && apt-get install -y apt-transport-https ca-certificates make curl gcc git bc jq
+
+            # Run the integration tests
+            - make integration
+          artifacts:
+            - .coverage/integration.cover.out
+
+    - step:
+        name: Coverage
+        services:
+            - docker
+        script:
+            # Prepare the environment
+            - export PATH="${GOPATH}/bin:$PATH" SRCDIR="${GOPATH}/src/bitbucket.org/asecurityteam/repocontract-test"
+            - mkdir -p "${GOPATH}/bin" "${GOPATH}/src/bitbucket.org/asecurityteam" && ln -s "${BITBUCKET_CLONE_DIR}" "${SRCDIR}" && cd "${SRCDIR}"
+            - apt-get update && apt-get install -y apt-transport-https ca-certificates make curl gcc git bc jq
+
+            # Create coverage report
+            - make coverage
+
+            # Upload coverage to codecov
+            - bash <(curl -s https://codecov.io/bash) -t "${CODECOV_REPO_TOKEN}" -r "${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}" -C "${BITBUCKET_COMMIT}" -B "${BITBUCKET_BRANCH}" -f .coverage/combined.cover.out
