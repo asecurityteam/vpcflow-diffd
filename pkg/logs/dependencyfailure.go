@@ -9,6 +9,9 @@ const (
 
 	// DependencyMarker identifies a marker failure
 	DependencyMarker = "marker"
+
+	// DependencyDiffer identifies a differ failure
+	DependencyDiffer = "differ"
 )
 
 // DependencyFailure is logged when a downstream dependency fails
