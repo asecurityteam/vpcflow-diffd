@@ -8,6 +8,10 @@
   version = "1.0.2"
 
 [[constraint]]
+  name = "github.com/google/uuid"
+  version = "v1.0.0"
+
+[[constraint]]
   branch = "master"
   name = "github.com/rs/xstats"
 
