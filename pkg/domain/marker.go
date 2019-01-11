@@ -11,7 +11,7 @@ type ErrInProgress struct {
 }
 
 func (e ErrInProgress) Error() string {
-	return fmt.Sprintf("digest %s is being created", e.Key)
+	return fmt.Sprintf("diff %s is being created", e.Key)
 }
 
 // Marker is an interface for indicating that a diff is in progress of being created
