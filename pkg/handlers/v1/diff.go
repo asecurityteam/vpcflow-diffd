@@ -71,7 +71,7 @@ func (h *DiffHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-// Get retrieves a graph
+// Get retrieves a diff
 func (h *DiffHandler) Get(w http.ResponseWriter, r *http.Request) {
 	logger := h.LogProvider(r.Context())
 	diff, err := extractInput(r)
