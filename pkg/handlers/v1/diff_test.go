@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io/ioutil"
@@ -15,21 +16,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newHandlerFunc(storage domain.Storage, queuer domain.Queuer) http.HandlerFunc {
+func newHandlerFunc(storage domain.Storage, queuer domain.Queuer, method string) http.HandlerFunc {
 	handler := &DiffHandler{
 		LogProvider: logevent.FromContext,
 		Storage:     storage,
 		Queuer:      queuer,
 	}
+	if method == http.MethodGet {
+		return handler.Get
+	}
 	return handler.Post
 }
 
-func newValidRequest() *http.Request {
+func newValidRequest(method string) *http.Request {
 	pStart := time.Now().Format(time.RFC3339Nano)
 	pStop := time.Now().Format(time.RFC3339Nano)
 	nStart := time.Now().Format(time.RFC3339Nano)
 	nStop := time.Now().Format(time.RFC3339Nano)
-	r, _ := http.NewRequest(http.MethodPost, "/", nil)
+
+	var r *http.Request
+	if method == http.MethodGet {
+		r, _ = http.NewRequest(http.MethodGet, "/", nil)
+	} else {
+		r, _ = http.NewRequest(http.MethodPost, "/", nil)
+	}
+
 	q := r.URL.Query()
 	q.Set("previous_start", pStart)
 	q.Set("previous_stop", pStop)
@@ -106,6 +117,62 @@ func TestHTTPBadRequest(t *testing.T) {
 			NextStop:      time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
 			Method:        http.MethodPost,
 		},
+		{
+			Name:          "GET_bad_previous_start",
+			PreviousStart: "invalid ts",
+			PreviousStop:  time.Now().Format(time.RFC3339Nano),
+			NextStart:     time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
+			NextStop:      time.Now().Format(time.RFC3339Nano),
+			Method:        http.MethodGet,
+		},
+		{
+			Name:          "GET_bad_previous_stop",
+			PreviousStart: time.Now().Format(time.RFC3339Nano),
+			PreviousStop:  "invalid ts",
+			NextStart:     time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
+			NextStop:      time.Now().Format(time.RFC3339Nano),
+			Method:        http.MethodGet,
+		},
+		{
+			Name:          "GET_bad_previous_range",
+			PreviousStart: time.Now().Format(time.RFC3339Nano),
+			PreviousStop:  time.Now().Add(-1 * time.Minute).Format(time.RFC3339Nano),
+			NextStart:     time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
+			NextStop:      time.Now().Format(time.RFC3339Nano),
+			Method:        http.MethodGet,
+		},
+		{
+			Name:          "GET_bad_next_start",
+			PreviousStart: time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
+			PreviousStop:  time.Now().Format(time.RFC3339Nano),
+			NextStart:     "invalid ts",
+			NextStop:      time.Now().Format(time.RFC3339Nano),
+			Method:        http.MethodGet,
+		},
+		{
+			Name:          "GET_bad_next_stop",
+			PreviousStart: time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
+			PreviousStop:  time.Now().Format(time.RFC3339Nano),
+			NextStart:     time.Now().Format(time.RFC3339Nano),
+			NextStop:      "invalid ts",
+			Method:        http.MethodGet,
+		},
+		{
+			Name:          "GET_bad_next_range",
+			PreviousStart: time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
+			PreviousStop:  time.Now().Format(time.RFC3339Nano),
+			NextStart:     time.Now().Format(time.RFC3339Nano),
+			NextStop:      time.Now().Add(-1 * time.Minute).Format(time.RFC3339Nano),
+			Method:        http.MethodGet,
+		},
+		{
+			Name:          "GET_next_range_before_previous",
+			PreviousStart: time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
+			PreviousStop:  time.Now().Format(time.RFC3339Nano),
+			NextStart:     time.Now().Add(-2 * time.Hour).Format(time.RFC3339Nano),
+			NextStop:      time.Now().Add(-1 * time.Hour).Format(time.RFC3339Nano),
+			Method:        http.MethodGet,
+		},
 	}
 
 	for _, tt := range tc {
@@ -121,18 +188,91 @@ func TestHTTPBadRequest(t *testing.T) {
 			r.URL.RawQuery = q.Encode()
 			r = r.WithContext(logevent.NewContext(context.Background(), logevent.New(logevent.Config{Output: ioutil.Discard})))
 
-			newHandlerFunc(nil, nil)(w, r)
+			newHandlerFunc(nil, nil, tt.Method)(w, r)
 
 			assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 		})
 	}
 }
 
+func TestGetStorageErrors(t *testing.T) {
+	tc := []struct {
+		Name               string
+		Error              error
+		ExpectedStatusCode int
+	}{
+		{
+			Name:               "GET_in_progress",
+			Error:              domain.ErrInProgress{},
+			ExpectedStatusCode: http.StatusNoContent,
+		},
+		{
+			Name:               "GET_not_found",
+			Error:              domain.ErrNotFound{},
+			ExpectedStatusCode: http.StatusNotFound,
+		},
+		{
+			Name:               "GET_unknown",
+			Error:              errors.New("oops"),
+			ExpectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tc {
+		t.Run(tt.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			r := newValidRequest(http.MethodGet)
+			w := httptest.NewRecorder()
+
+			storageMock := NewMockStorage(ctrl)
+			storageMock.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, tt.Error)
+
+			h := DiffHandler{
+				LogProvider: logevent.FromContext,
+				Storage:     storageMock,
+			}
+			h.Get(w, r)
+
+			assert.Equal(t, tt.ExpectedStatusCode, w.Result().StatusCode)
+		})
+	}
+}
+
+func TestGetHappyPath(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	r := newValidRequest(http.MethodGet)
+	w := httptest.NewRecorder()
+
+	data := "this is the diff you're looking for"
+	readCloser := ioutil.NopCloser(bytes.NewReader([]byte(data)))
+
+	storageMock := NewMockStorage(ctrl)
+	storageMock.EXPECT().Get(gomock.Any(), gomock.Any()).Return(readCloser, nil)
+
+	h := DiffHandler{
+		LogProvider: logevent.FromContext,
+		Storage:     storageMock,
+	}
+	h.Get(w, r)
+
+	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	body := w.Result().Body
+	defer body.Close()
+
+	result, _ := ioutil.ReadAll(body)
+	assert.Equal(t, data, string(result))
+}
+
 func TestPostConflictInProgress(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	r := newValidRequest()
+	r := newValidRequest(http.MethodPost)
 	w := httptest.NewRecorder()
 
 	storageMock := NewMockStorage(ctrl)
@@ -147,11 +287,11 @@ func TestPostConflictInProgress(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, w.Result().StatusCode)
 }
 
-func TestPostConflictGraphCreated(t *testing.T) {
+func TestPostConflictDiffCreated(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	r := newValidRequest()
+	r := newValidRequest(http.MethodPost)
 	w := httptest.NewRecorder()
 
 	storageMock := NewMockStorage(ctrl)
@@ -170,7 +310,7 @@ func TestPostStorageError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	r := newValidRequest()
+	r := newValidRequest(http.MethodPost)
 	w := httptest.NewRecorder()
 
 	storageMock := NewMockStorage(ctrl)
@@ -189,7 +329,7 @@ func TestPostQueueError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	r := newValidRequest()
+	r := newValidRequest(http.MethodPost)
 	w := httptest.NewRecorder()
 
 	storageMock := NewMockStorage(ctrl)
@@ -211,7 +351,7 @@ func TestPostHappyPath(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	r := newValidRequest()
+	r := newValidRequest(http.MethodPost)
 	w := httptest.NewRecorder()
 
 	storageMock := NewMockStorage(ctrl)
@@ -236,7 +376,7 @@ func TestPostUnsuccessfulMark(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	r := newValidRequest()
+	r := newValidRequest(http.MethodPost)
 	w := httptest.NewRecorder()
 
 	storageMock := NewMockStorage(ctrl)
