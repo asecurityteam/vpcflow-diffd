@@ -49,8 +49,6 @@ linters:
     - interfacer
     - lll
     - gocyclo
-    - gochecknoglobals
-    - scopelint
 issues:
   exclude-use-default: false
   exclude:
