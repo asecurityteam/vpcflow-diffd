@@ -84,6 +84,10 @@ func (d *DOTDiffer) Diff(ctx context.Context, diff domain.Diff) (io.ReadCloser, 
 	return ioutil.NopCloser(bytes.NewReader([]byte(g.String()))), nil
 }
 
+// graphDiff takes the difference of edges in a and b. In other words it finds the set of edges that
+// exist in a, but not in b. As it finds these edges it adds the provided tag to the edge's label which
+// better describes the meaning behind the difference. As well as finding the difference in edges, a map
+// of nodes is also used to track unique node IDs which appear in the diff.
 func graphDiff(a, b map[string]*ast.EdgeStmt, tag string, nodes map[string]bool) []ast.Stmt {
 	diff := make([]ast.Stmt, 0)
 	for k, v := range a {
@@ -91,12 +95,12 @@ func graphDiff(a, b map[string]*ast.EdgeStmt, tag string, nodes map[string]bool)
 		if ok { // edge is in both graphs
 			continue
 		}
-		// modify the label
+		// modify the label to display "diff=<tag>" on the edge annotation
 		label := v.Attrs[len(v.Attrs)-1].Val
 		label = strings.Trim(label, `"`)
 		label = fmt.Sprintf(`%s\ndiff=%s`, label, tag)
 		v.Attrs[len(v.Attrs)-1].Val = fmt.Sprintf(`"%s"`, label)
-		// add namespaced attribute for easy parsing
+		// also add tag as namespaced attribute for easy parsing by downstream consumers
 		v.Attrs = append(v.Attrs, &ast.Attr{
 			Key: "govpc_diff",
 			Val: fmt.Sprintf(`"%s"`, tag),
