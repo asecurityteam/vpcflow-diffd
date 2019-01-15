@@ -10,6 +10,49 @@
   version = "1.0.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:e92a1c9c7b3b68af44ad1d0f79118e83cf7e5b5bcf124045403dd6f141a4fa36"
+  name = "bitbucket.org/atlassian/vpcflow-grapherd"
+  packages = ["pkg/types"]
+  pruneopts = "UT"
+  revision = "fd17a145ca354ba9320ed1ec65a43747069b5b4b"
+
+[[projects]]
+  digest = "1:ee76059d5fb8d008c3acd7c36bbe70230d9116e999073772f1dd9bd9b681c5f5"
+  name = "github.com/aws/aws-sdk-go"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/credentials",
+    "aws/endpoints",
+    "aws/request",
+    "aws/signer/v4",
+    "internal/ini",
+    "internal/s3err",
+    "internal/sdkio",
+    "internal/sdkrand",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/restxml",
+    "private/protocol/xml/xmlutil",
+    "service/s3",
+    "service/s3/s3iface",
+    "service/s3/s3manager",
+    "service/s3/s3manager/s3manageriface",
+  ]
+  pruneopts = "UT"
+  revision = "6d55516ad2946220d9e26804f224c1c215f293ea"
+  version = "v1.16.17"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -40,6 +83,13 @@
   pruneopts = "UT"
   revision = "9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8"
   version = "v1.1.0"
+
+[[projects]]
+  digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c2b33e84"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -98,6 +148,14 @@
   analyzer-version = 1
   input-imports = [
     "bitbucket.org/atlassian/logevent",
+    "bitbucket.org/atlassian/vpcflow-grapherd/pkg/types",
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/awserr",
+    "github.com/aws/aws-sdk-go/aws/request",
+    "github.com/aws/aws-sdk-go/service/s3",
+    "github.com/aws/aws-sdk-go/service/s3/s3iface",
+    "github.com/aws/aws-sdk-go/service/s3/s3manager",
+    "github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface",
     "github.com/golang/mock/gomock",
     "github.com/google/uuid",
     "github.com/rs/xstats",
