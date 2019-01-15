@@ -15,6 +15,10 @@
   branch = "master"
   name = "github.com/rs/xstats"
 
+[[constraint]]
+  name = "gonum.org/v1/gonum"
+  revision = "572d9101fe4fdede494f26999a59d09229b7c11b"
+
 [prune]
   go-tests = true
   unused-packages = true

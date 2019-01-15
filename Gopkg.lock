@@ -141,7 +141,22 @@
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = "UT"
-  revision = "1e06a53dbb7e2ed46e91183f219db23c6943c532"
+  revision = "915654e7eabcea33ae277abbecf52f0d8b7a9fdc"
+
+[[projects]]
+  digest = "1:d80b316bc51a12717f6760bcaa6c41461e8abb5393a0f77bbc938e65bdc769c0"
+  name = "gonum.org/v1/gonum"
+  packages = [
+    "graph/formats/dot",
+    "graph/formats/dot/ast",
+    "graph/formats/dot/internal/astx",
+    "graph/formats/dot/internal/errors",
+    "graph/formats/dot/internal/lexer",
+    "graph/formats/dot/internal/parser",
+    "graph/formats/dot/internal/token",
+  ]
+  pruneopts = "UT"
+  revision = "572d9101fe4fdede494f26999a59d09229b7c11b"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -160,6 +175,8 @@
     "github.com/google/uuid",
     "github.com/rs/xstats",
     "github.com/stretchr/testify/assert",
+    "gonum.org/v1/gonum/graph/formats/dot",
+    "gonum.org/v1/gonum/graph/formats/dot/ast",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
