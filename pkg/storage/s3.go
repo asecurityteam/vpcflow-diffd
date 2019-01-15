@@ -57,7 +57,9 @@ func (s *S3) Exists(ctx context.Context, key string) (bool, error) {
 // Store stores the diff. It is the caller's responsibility to call Close on the Reader when done.
 func (s *S3) Store(ctx context.Context, key string, data io.ReadCloser) error {
 	// lazily initialize uploader with the s3 client
-	s.once.Do(s.initUploader)
+	s.once.Do(func() {
+		s.uploader = s3manager.NewUploaderWithClient(s.Client)
+	})
 
 	_, err := s.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
 		Bucket: aws.String(s.Bucket),
@@ -65,12 +67,6 @@ func (s *S3) Store(ctx context.Context, key string, data io.ReadCloser) error {
 		Body:   data,
 	})
 	return err
-}
-
-func (s *S3) initUploader() {
-	if s.uploader == nil {
-		s.uploader = s3manager.NewUploaderWithClient(s.Client)
-	}
 }
 
 // If a key is not found, transform to our NotFound error, otherwise return original error

@@ -24,7 +24,10 @@ type ProgressMarker struct {
 
 // Mark flags the graph identified by key as being "in progress"
 func (m *ProgressMarker) Mark(ctx context.Context, key string) error {
-	m.once.Do(m.initUploader)
+	m.once.Do(func() {
+		m.uploader = s3manager.NewUploaderWithClient(m.Client)
+	})
+
 	_, err := m.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
 		Bucket: aws.String(m.Bucket),
 		Key:    aws.String(key + inProgressSuffix),
@@ -40,10 +43,4 @@ func (m *ProgressMarker) Unmark(ctx context.Context, key string) error {
 		Key:    aws.String(key + inProgressSuffix),
 	})
 	return err
-}
-
-func (m *ProgressMarker) initUploader() {
-	if m.uploader == nil {
-		m.uploader = s3manager.NewUploaderWithClient(m.Client)
-	}
 }
