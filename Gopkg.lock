@@ -2,23 +2,26 @@
 
 
 [[projects]]
-  digest = "1:5c46cc1c9c82a388020b1e1281edc4ebef2a4427e8192d4e1de6620e5d6407d4"
+  digest = "1:fc7ac93c8a978bd4ccbe0c85fdca0e7723d72be1f76feb2b162b970ae6276aa2"
   name = "bitbucket.org/atlassian/logevent"
-  packages = ["."]
+  packages = [
+    ".",
+    "http",
+  ]
   pruneopts = "UT"
   revision = "675fa127247ec5f96142b7c71d5bd7d04b730a4f"
   version = "1.0.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e92a1c9c7b3b68af44ad1d0f79118e83cf7e5b5bcf124045403dd6f141a4fa36"
-  name = "bitbucket.org/atlassian/vpcflow-grapherd"
-  packages = ["pkg/types"]
+  digest = "1:f5f53e15dfd7a1609de60298c1809576472adb76ce65f7a0849fafd244b2f232"
+  name = "bitbucket.org/atlassian/transport"
+  packages = ["."]
   pruneopts = "UT"
-  revision = "fd17a145ca354ba9320ed1ec65a43747069b5b4b"
+  revision = "4d788ab0e2375a78205f463a54f446a6be4a934c"
+  version = "1.1.0"
 
 [[projects]]
-  digest = "1:ee76059d5fb8d008c3acd7c36bbe70230d9116e999073772f1dd9bd9b681c5f5"
+  digest = "1:0059c1af5eabe08a158eb36db236213d555ab8844548592c853259135323a194"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -26,14 +29,24 @@
     "aws/awsutil",
     "aws/client",
     "aws/client/metadata",
+    "aws/corehandlers",
     "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
+    "aws/credentials/stscreds",
+    "aws/csm",
+    "aws/defaults",
+    "aws/ec2metadata",
     "aws/endpoints",
     "aws/request",
+    "aws/session",
     "aws/signer/v4",
     "internal/ini",
     "internal/s3err",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/eventstream",
@@ -47,6 +60,7 @@
     "service/s3/s3iface",
     "service/s3/s3manager",
     "service/s3/s3manager/s3manageriface",
+    "service/sts",
   ]
   pruneopts = "UT"
   revision = "6d55516ad2946220d9e26804f224c1c215f293ea"
@@ -67,6 +81,14 @@
   pruneopts = "UT"
   revision = "4966fc68f5b7593aafa6cbbba2d65ec6e1416047"
   version = "v1.1.0"
+
+[[projects]]
+  digest = "1:b8d8afedc1ea9028d6b8a037a61acaf5bac8ffb1ceb4b285a0af6654bfc62f16"
+  name = "github.com/go-chi/chi"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e95203758b2a6ec24a8e97124d5719ffe5ec1374"
+  version = "v4.0.0"
 
 [[projects]]
   digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
@@ -109,9 +131,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:48e00a642ae84b4344acb4f0866351d6a89f27a92384988c17cc43fb4c100344"
+  digest = "1:b312ce0585169062a8b55dd8ad9bacd54cc98b056670b8638da86b5535ebcd41"
   name = "github.com/rs/xstats"
-  packages = ["."]
+  packages = [
+    ".",
+    "dogstatsd",
+  ]
   pruneopts = "UT"
   revision = "c67367528e160e557423e4d87059614d8c31a582"
 
@@ -163,17 +188,22 @@
   analyzer-version = 1
   input-imports = [
     "bitbucket.org/atlassian/logevent",
-    "bitbucket.org/atlassian/vpcflow-grapherd/pkg/types",
+    "bitbucket.org/atlassian/logevent/http",
+    "bitbucket.org/atlassian/transport",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/awserr",
+    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/request",
+    "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/s3",
     "github.com/aws/aws-sdk-go/service/s3/s3iface",
     "github.com/aws/aws-sdk-go/service/s3/s3manager",
     "github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface",
+    "github.com/go-chi/chi",
     "github.com/golang/mock/gomock",
     "github.com/google/uuid",
     "github.com/rs/xstats",
+    "github.com/rs/xstats/dogstatsd",
     "github.com/stretchr/testify/assert",
     "gonum.org/v1/gonum/graph/formats/dot",
     "gonum.org/v1/gonum/graph/formats/dot/ast",
