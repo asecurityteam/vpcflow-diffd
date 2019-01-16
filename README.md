@@ -77,7 +77,7 @@ This module is responsible for creating and fetching VPC Flow Log graphs. The
 built-in Grapher can be configured by configuring `GRAPHER_ENDPOINT` to point to a
 running intance of
 [vpcflow-grapherd](https://bitbucket.org/atlassian/vpcflow-grapherd/src). It will
-create the digest and poll the grapher on an interval specified by
+create two graphs and poll the grapher on an interval specified by
 `GRAPHER_POLLING_INTERVAL`, and will continue to poll until
 `GRAPHER_POLLING_TIMEOUT` is reached.
 
@@ -148,7 +148,7 @@ main routine to shutdown the service.
 | DIFF\_PROGRESS\_BUCKET\_REGION      |    Yes   | The region of the S3 bucket used to store graph progress states            | us-west-2                       |
 | GRAPHER\_ENDPOINT               |    Yes   | Endpoint to vpcflow-grapherd api                                                                                     | http://ec2-grapherd.us-west-2.compute.amazonaws.com                                            |
 | GRAPHER\_POLLING\_INTERVAL               |    Yes   | Amount of time to wait in between poll attempts in milliseconds                                                                                     | 1000                                            |
-| GRAPHER\_POLLING\_TIMEOUT               |    Yes   | Amount of total time to continue polling the digester in milliseconds. If you wish to poll indefinitely, set to -1.                                                                      | 10000                                            |
+| GRAPHER\_POLLING\_TIMEOUT               |    Yes   | Amount of total time to continue polling the grapher in milliseconds. If you wish to poll indefinitely, set to -1.                                                                      | 10000                                            |
 | STREAM\_APPLIANCE\_ENDPOINT   |    Yes   | Endpoint for the service which queues graphs to be created. | http://ec2-event-bus.us-west-2.compute.amazonaws.com |
 | USE\_IAM                     |    Yes   | true or false. Set this flag to true if your application will be assuming an IAM role to read and write to the S3 buckets. This is recommended if you are deploying your application to an ec2 instance.       | true                                            |
 | AWS\_CREDENTIALS\_FILE        |    No    | If not using IAM, use this to specify a credential file                                                                         | ~/.aws/credentials                              |
