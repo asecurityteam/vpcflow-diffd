@@ -145,6 +145,7 @@ main routine to shutdown the service.
 | DIFF\_STORAGE\_BUCKET       |    Yes   | The name of the S3 bucket used to store graphs                                                                                 | vpc-flow-diffs                                |
 | DIFF\_STORAGE\_BUCKET\_REGION       |    Yes   | The region of the S3 bucket used to store graphs                                                                                 | us-west-2                                |
 | DIFF\_PROGRESS\_BUCKET      |    Yes   | The name of the S3 bucket used to store graph progress states                                                                  | vpc-flow-diffs-progress                       |
+| DIFF\_PROGRESS\_TIMEOUT      |    Yes   | The time in milliseconds after which a progress marker is considered invalid        | 100000                       |
 | DIFF\_PROGRESS\_BUCKET\_REGION      |    Yes   | The region of the S3 bucket used to store graph progress states            | us-west-2                       |
 | GRAPHER\_ENDPOINT               |    Yes   | Endpoint to vpcflow-grapherd api                                                                                     | http://ec2-grapherd.us-west-2.compute.amazonaws.com                                            |
 | GRAPHER\_POLLING\_INTERVAL               |    Yes   | Amount of time to wait in between poll attempts in milliseconds                                                                                     | 1000                                            |
