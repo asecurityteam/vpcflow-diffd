@@ -13,15 +13,15 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:f5f53e15dfd7a1609de60298c1809576472adb76ce65f7a0849fafd244b2f232"
+  digest = "1:971024ef1a764461d2cb20cf5a115fa6f72a3982f3499ff28d9b8e83ba337159"
   name = "bitbucket.org/atlassian/transport"
   packages = ["."]
   pruneopts = "UT"
-  revision = "4d788ab0e2375a78205f463a54f446a6be4a934c"
-  version = "1.1.0"
+  revision = "09aeb930fafb2a2bd96b500adf4981d23844b6d1"
+  version = "1.1.1"
 
 [[projects]]
-  digest = "1:0059c1af5eabe08a158eb36db236213d555ab8844548592c853259135323a194"
+  digest = "1:a451b3238d18a2e57bd2e8f1578386ce6fe34cfdc7297b697e3dc2420c6f910b"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -63,8 +63,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "6d55516ad2946220d9e26804f224c1c215f293ea"
-  version = "v1.16.17"
+  revision = "81f3829f5a9d041041bdf56e55926691309d7699"
+  version = "v1.16.26"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -87,8 +87,8 @@
   name = "github.com/go-chi/chi"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e95203758b2a6ec24a8e97124d5719ffe5ec1374"
-  version = "v4.0.0"
+  revision = "1a6bb108ccf279c8dac6f9bad857d773b4f9b421"
+  version = "v4.0.1"
 
 [[projects]]
   digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
@@ -166,7 +166,7 @@
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = "UT"
-  revision = "915654e7eabcea33ae277abbecf52f0d8b7a9fdc"
+  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
 
 [[projects]]
   digest = "1:d80b316bc51a12717f6760bcaa6c41461e8abb5393a0f77bbc938e65bdc769c0"
