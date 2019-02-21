@@ -137,15 +137,21 @@ func parseGraph(graph io.Reader) (map[string]*ast.EdgeStmt, map[string]*ast.Node
 
 // return a key which uniquely identifies this edge
 func edgeKey(edge *ast.EdgeStmt) string {
-	key := fmt.Sprintf("%s_%s", edge.From.String(), edge.To.Vertex.String())
+	baseKey := fmt.Sprintf("%s_%s", edge.From.String(), edge.To.Vertex.String())
+	length := len(baseKey)
+	for offset := range edge.Attrs {
+		length = length + len(edge.Attrs[offset].Val) + 1
+	}
+	key := bytes.NewBuffer(make([]byte, 0, length))
+	_, _ = key.WriteString(baseKey)
 	for _, attr := range edge.Attrs {
-		_, ok := keyAttrs[attr.Key]
-		if !ok {
+		if _, ok := keyAttrs[attr.Key]; !ok {
 			continue
 		}
-		key = key + "_" + attr.Val
+		_, _ = key.WriteString("_")
+		_, _ = key.WriteString(attr.Val)
 	}
-	return key
+	return key.String()
 }
 
 func (d *DOTDiffer) getGraph(ctx context.Context, out chan io.ReadCloser, err chan error, start, stop time.Time, wg *sync.WaitGroup) {
