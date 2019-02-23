@@ -26,3 +26,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/armon/go-radix"
+  version = "1.0.0"

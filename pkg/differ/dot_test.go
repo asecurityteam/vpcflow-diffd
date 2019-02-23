@@ -12,11 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
 	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"gonum.org/v1/gonum/graph/formats/dot"
-	"gonum.org/v1/gonum/graph/formats/dot/ast"
 )
 
 func TestPrevGraphError(t *testing.T) {
@@ -31,8 +30,8 @@ func TestPrevGraphError(t *testing.T) {
 	}
 
 	grapherMock := NewMockGrapher(ctrl)
-	grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(nil, errors.New(""))
-	grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(""))), nil)
+	grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(nil, errors.New("")).AnyTimes()
+	grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(""))), nil).AnyTimes()
 
 	differ := DOTDiffer{grapherMock}
 	_, err := differ.Diff(context.Background(), d)
@@ -52,6 +51,8 @@ func TestNextGraphError(t *testing.T) {
 
 	grapherMock := NewMockGrapher(ctrl)
 	grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(""))), nil)
+	grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(""))), nil)
+	grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(nil, errors.New(""))
 	grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(nil, errors.New(""))
 
 	differ := DOTDiffer{grapherMock}
@@ -81,7 +82,7 @@ func TestDiff(t *testing.T) {
 				n1723116139 -> n172311621 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="0" govpc_dstPort="80" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=0\ndstPort=80\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
 				n172311621 -> n1723116139 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="80" govpc_dstPort="0" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=80\ndstPort=0\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
 				n172311621 -> n172311622 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="0" govpc_dstPort="80" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=80\ndstPort=0\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
-				n172311622 -> n172311621[govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="80" govpc_dstPort="0" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=80\ndstPort=0\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
+				n172311622 -> n172311621 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="80" govpc_dstPort="0" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=80\ndstPort=0\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
 				n1723116139 [label="172.31.16.139"]
 				n172311621 [label="172.31.16.21"]
 				n172311622 [label="172.31.16.22"]
@@ -136,7 +137,7 @@ func TestDiff(t *testing.T) {
 				n1723116139 -> n172311621 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="0" govpc_dstPort="80" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=0\ndstPort=80\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
 				n172311621 -> n1723116139 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="80" govpc_dstPort="0" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=80\ndstPort=0\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
 				n172311621 -> n172311622 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="0" govpc_dstPort="80" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=80\ndstPort=0\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
-				n172311622 -> n172311621[govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="80" govpc_dstPort="0" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=80\ndstPort=0\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
+				n172311622 -> n172311621 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="80" govpc_dstPort="0" govpc_protocol="6" govpc_packets="40" govpc_bytes="2000" govpc_start="1418530010" govpc_end="1818530070" color=green label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=80\ndstPort=0\nprotocol=6\npackets=40\nbytes=2000\nstart=1418530010\nend=1818530070"]
 				n1723116139 [label="172.31.16.139"]
 				n172311621 [label="172.31.16.21"]
 				n172311622 [label="172.31.16.22"]
@@ -193,6 +194,8 @@ func TestDiff(t *testing.T) {
 
 			grapherMock := NewMockGrapher(ctrl)
 			grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(tt.Previous))), nil)
+			grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(tt.Previous))), nil)
+			grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(tt.Next))), nil)
 			grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(tt.Next))), nil)
 
 			differ := DOTDiffer{grapherMock}
@@ -214,39 +217,6 @@ func TestDiff(t *testing.T) {
 			assert.Equal(t, len(tt.Expected), numLines)
 		})
 	}
-}
-
-var benchmarkEdgeKey string
-
-func BenchmarkEdgeKey(b *testing.B) {
-	f, err := dot.Parse(bytes.NewBufferString(`digraph {
-		n1723116139 -> n172311621 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="0" govpc_dstPort="80" govpc_protocol="6" govpc_packets="20" govpc_bytes="1000" govpc_start="1418530010" govpc_end="1818530070" color=red label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=0\ndstPort=80\nprotocol=6\npackets=20\nbytes=1000\nstart=1418530010\nend=1818530070"]
-		n1723116139 [label="172.31.16.139"]
-		n172311621 [label="172.31.16.21"]
-	}`))
-	if err != nil {
-		b.Fatal(err.Error())
-	}
-	var edge *ast.EdgeStmt
-	for _, g := range f.Graphs {
-		for _, stmt := range g.Stmts {
-			switch v := stmt.(type) {
-			case *ast.EdgeStmt:
-				edge = v
-			default:
-				continue
-			}
-		}
-	}
-	if edge == nil {
-		b.Fatal("no edge found in test graph")
-	}
-	b.ResetTimer()
-	var key string
-	for n := 0; n < b.N; n = n + 1 {
-		key = edgeKey(edge)
-	}
-	benchmarkEdgeKey = key
 }
 
 func BenchmarkDiff(b *testing.B) {
@@ -351,6 +321,8 @@ func BenchmarkDiff(b *testing.B) {
 
 			for n := 0; n < b.N; n = n + 1 {
 				grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(tt.Previous))), nil)
+				grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(tt.Previous))), nil)
+				grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(tt.Next))), nil)
 				grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(ioutil.NopCloser(bytes.NewReader([]byte(tt.Next))), nil)
 			}
 
@@ -403,8 +375,6 @@ func BenchmarkLargeDiff(b *testing.B) {
 	}
 	_, _ = prevBuff.WriteString("}")
 	_, _ = nextBuff.WriteString("}")
-	// fmt.Println(nextBuff.String())
-	// panic("STOP")
 	d := domain.Diff{
 		PreviousStart: time.Now().Add(-1 * time.Hour),
 		PreviousStop:  time.Now().Add(-1 * time.Hour),
@@ -419,6 +389,8 @@ func BenchmarkLargeDiff(b *testing.B) {
 
 	for n := 0; n < b.N; n = n + 1 {
 		grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(ioutil.NopCloser(bytes.NewReader(prevBuff.Bytes())), nil)
+		grapherMock.EXPECT().Graph(gomock.Any(), d.PreviousStart, d.PreviousStop).Return(ioutil.NopCloser(bytes.NewReader(prevBuff.Bytes())), nil)
+		grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(ioutil.NopCloser(bytes.NewReader(nextBuff.Bytes())), nil)
 		grapherMock.EXPECT().Graph(gomock.Any(), d.NextStart, d.NextStop).Return(ioutil.NopCloser(bytes.NewReader(nextBuff.Bytes())), nil)
 	}
 

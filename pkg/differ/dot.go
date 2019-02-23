@@ -1,18 +1,19 @@
 package differ
 
 import (
+	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
+	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
+	radix "github.com/armon/go-radix"
 	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
-	"gonum.org/v1/gonum/graph/formats/dot"
-	"gonum.org/v1/gonum/graph/formats/dot/ast"
 )
 
 // The set of keyed attributes of an edge. This are values which we won't expect to change between graph generations
@@ -32,24 +33,54 @@ type DOTDiffer struct {
 
 // Diff generates the diff of two DOT graphs
 func (d *DOTDiffer) Diff(ctx context.Context, diff domain.Diff) (io.ReadCloser, error) {
+
+	// Note for readers: This function previously used the same DOT parsing library
+	// as go-vpcflow uses to create the graphs. However, we started hitting OOM errors
+	// when running on only a portion of our full VPC flow data for a 24 hour period.
+	// The combination of reading two large graph files into memory and parsing them
+	// began to exceed 16GiB for a few million records. As a stop-gap we have refactored
+	// this method to use a radix/prefix tree rather than maps to track data and
+	// repeatedly streaming the full data set through the system rather than load
+	// and buffer. This is a trade-off of memory for bandwidth.
+	//
+	// Additionally, we've dropped the full lexer/parser in favor of working directly
+	// with the string content of the file. As a result, we are susceptible to problems
+	// cause by faulty or corrupted graph input.
+	//
+	// Both of these are temporary measures to ensure we can generate DIFF graphs while
+	// we work on a more complete solution that scales beyond a fraction of our data
+	// for 24 hours.
+
 	prevChan := make(chan io.ReadCloser, 1)
+	prevSourceChan := make(chan io.ReadCloser, 1)
 	nextChan := make(chan io.ReadCloser, 1)
-	errs := make(chan error, 2)
+	nextSourceChan := make(chan io.ReadCloser, 1)
+	errs := make(chan error, 4)
 	wg := &sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(4)
 
 	go d.getGraph(ctx, prevChan, errs, diff.PreviousStart, diff.PreviousStop, wg)
+	go d.getGraph(ctx, prevSourceChan, errs, diff.PreviousStart, diff.PreviousStop, wg)
 	go d.getGraph(ctx, nextChan, errs, diff.NextStart, diff.NextStop, wg)
+	go d.getGraph(ctx, nextSourceChan, errs, diff.NextStart, diff.NextStop, wg)
 	wg.Wait()
 
 	close(errs)
 	prevGraph := <-prevChan
+	prevSourceGraph := <-prevSourceChan
 	nextGraph := <-nextChan
+	nextSourceGraph := <-nextSourceChan
 	if nextGraph != nil {
 		defer nextGraph.Close()
 	}
+	if nextSourceGraph != nil {
+		defer nextSourceGraph.Close()
+	}
 	if prevGraph != nil {
 		defer prevGraph.Close()
+	}
+	if prevSourceGraph != nil {
+		defer prevSourceGraph.Close()
 	}
 	for err := range errs {
 		if err != nil {
@@ -57,101 +88,152 @@ func (d *DOTDiffer) Diff(ctx context.Context, diff domain.Diff) (io.ReadCloser, 
 		}
 	}
 
-	prevEdges, prevNodes, err := parseGraph(prevGraph)
-	if err != nil {
-		return nil, err
-	}
-	nextEdges, nextNodes, err := parseGraph(nextGraph)
-	if err != nil {
-		return nil, err
-	}
-	// keep a map of nodes for deduping
-	nodes := make(map[string]bool)
-	removedEdges := graphDiff(prevEdges, nextEdges, "REMOVED", nodes)
-	addedEdges := graphDiff(nextEdges, prevEdges, "ADDED", nodes)
-	g := &ast.Graph{Directed: true}
-	g.Stmts = append(g.Stmts, removedEdges...)
-	g.Stmts = append(g.Stmts, addedEdges...)
-	for nodeID := range nodes {
-		var stmt *ast.NodeStmt
-		var ok bool
-		stmt, ok = prevNodes[nodeID]
-		if !ok {
-			stmt = nextNodes[nodeID]
-		}
-		g.Stmts = append(g.Stmts, stmt)
-	}
-	return ioutil.NopCloser(bytes.NewReader([]byte(g.String()))), nil
-}
-
-// graphDiff takes the difference of edges in a and b. In other words it finds the set of edges that
-// exist in a, but not in b. As it finds these edges it adds the provided tag to the edge's label which
-// better describes the meaning behind the difference. As well as finding the difference in edges, a map
-// of nodes is also used to track unique node IDs which appear in the diff.
-func graphDiff(a, b map[string]*ast.EdgeStmt, tag string, nodes map[string]bool) []ast.Stmt {
-	diff := make([]ast.Stmt, 0)
-	for k, v := range a {
-		_, ok := b[k]
-		if ok { // edge is in both graphs
+	nodes := radix.New()
+	prevReader := bufio.NewReader(prevGraph)
+	prevSearch := radix.New()
+	var err error
+	var line string
+	for line, err = prevReader.ReadString('\n'); err == nil; line, err = prevReader.ReadString('\n') {
+		line = strings.TrimSpace(line)
+		if line == "" {
 			continue
 		}
-		// modify the label to display "diff=<tag>" on the edge annotation
-		label := v.Attrs[len(v.Attrs)-1].Val
-		label = strings.Trim(label, `"`)
-		label = fmt.Sprintf(`%s\ndiff=%s`, label, tag)
-		v.Attrs[len(v.Attrs)-1].Val = fmt.Sprintf(`"%s"`, label)
-		// also add tag as namespaced attribute for easy parsing by downstream consumers
-		v.Attrs = append(v.Attrs, &ast.Attr{
-			Key: "govpc_diff",
-			Val: fmt.Sprintf(`"%s"`, tag),
-		})
-		diff = append(diff, v)
-		nodes[v.From.String()] = true
-		nodes[v.To.Vertex.String()] = true
+		key, keyType, _ := lineKey(line)
+		if keyType == lineTypeNode {
+			nodes.Insert(key, line)
+			continue
+		}
+		_, _ = prevSearch.Insert(key, nil)
 	}
-	return diff
-}
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
 
-// parse the graph into maps of edges and nodes for easy lookup
-func parseGraph(graph io.Reader) (map[string]*ast.EdgeStmt, map[string]*ast.NodeStmt, error) {
-	f, err := dot.Parse(graph)
-	if err != nil {
-		return nil, nil, err
+	nextReader := bufio.NewReader(nextGraph)
+	nextSearch := radix.New()
+	for line, err = nextReader.ReadString('\n'); err == nil; line, err = nextReader.ReadString('\n') {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		key, keyType, _ := lineKey(line)
+		if keyType == lineTypeNode {
+			nodes.Insert(key, line)
+			continue
+		}
+		_, _ = nextSearch.Insert(key, nil)
 	}
-	edges := make(map[string]*ast.EdgeStmt)
-	nodes := make(map[string]*ast.NodeStmt)
-	for _, g := range f.Graphs {
-		for _, stmt := range g.Stmts {
-			switch v := stmt.(type) {
-			case *ast.EdgeStmt:
-				edges[edgeKey(v)] = v
-			case *ast.NodeStmt:
-				nodes[v.Node.ID] = v
-			default:
-				continue
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	output := bytes.NewBufferString("digraph {\n")
+	nodesToShow := radix.New()
+	nextSourceReader := bufio.NewReader(nextSourceGraph)
+	for line, err = nextSourceReader.ReadString('\n'); err == nil; line, err = nextSourceReader.ReadString('\n') {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		key, keyType, edgeNodes := lineKey(line)
+		_, prevFound := prevSearch.Get(key)
+		if keyType == lineTypeNode {
+			continue
+		}
+		if keyType == lineTypeEdge && !prevFound {
+			for offset := range edgeNodes {
+				nodesToShow.Insert(edgeNodes[offset], nil)
 			}
+			_, _ = output.WriteString(line[:len(line)-2]) // remove ] and newline".
+			_, _ = output.WriteString("\\ndiff=ADDED\" govpc_diff=\"ADDED\"]\n")
 		}
 	}
-	return edges, nodes, nil
-}
-
-// return a key which uniquely identifies this edge
-func edgeKey(edge *ast.EdgeStmt) string {
-	baseKey := fmt.Sprintf("%s_%s", edge.From.String(), edge.To.Vertex.String())
-	length := len(baseKey)
-	for offset := range edge.Attrs {
-		length = length + len(edge.Attrs[offset].Val) + 1
+	if err != nil && err != io.EOF {
+		return nil, err
 	}
-	key := bytes.NewBuffer(make([]byte, 0, length))
-	_, _ = key.WriteString(baseKey)
-	for _, attr := range edge.Attrs {
-		if _, ok := keyAttrs[attr.Key]; !ok {
+
+	prevSourceReader := bufio.NewReader(prevSourceGraph)
+	for line, err = prevSourceReader.ReadString('\n'); err == nil; line, err = prevSourceReader.ReadString('\n') {
+		line = strings.TrimSpace(line)
+		if line == "" {
 			continue
 		}
-		_, _ = key.WriteString("_")
-		_, _ = key.WriteString(attr.Val)
+		key, keyType, edgeNodes := lineKey(line)
+		_, nextFound := nextSearch.Get(key)
+		if keyType == lineTypeNode {
+			continue
+		}
+		if keyType == lineTypeEdge && !nextFound {
+			for offset := range edgeNodes {
+				nodesToShow.Insert(edgeNodes[offset], nil)
+			}
+			_, _ = output.WriteString(line[:len(line)-2]) // remove ] and newline".
+			_, _ = output.WriteString("\\ndiff=REMOVED\" govpc_diff=\"REMOVED\"]\n")
+		}
 	}
-	return key.String()
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	nodesToShow.Walk(func(node string, _ interface{}) bool {
+		nodeValue, _ := nodes.Get(node)
+		_, _ = output.WriteString(nodeValue.(string))
+		_, _ = output.WriteString("\n")
+		return false
+	})
+	_, _ = output.WriteString("}")
+
+	return ioutil.NopCloser(output), nil
+}
+
+type lineType uint
+
+const (
+	lineTypeNode lineType = 1
+	lineTypeEdge lineType = 2
+)
+
+func lineKey(line string) (string, lineType, []string) {
+	if strings.Contains(line, "->") {
+		key, nodes := lineEdgeKey(line)
+		return key, lineTypeEdge, nodes
+	}
+	return lineNodeKey(line), lineTypeNode, nil
+}
+
+// lineEdgeKey converts an edge written by the go-vpcflow graph component
+// in to a unique key. The source format looks like:
+//
+// n1723116139 -> n172311621 [govpc_accountID="123456789010" govpc_eniID="eni-abc123de" govpc_srcPort="0" govpc_dstPort="80" govpc_protocol="6" govpc_packets="20" govpc_bytes="1000" govpc_start="1418530010" govpc_end="1818530070" color=red label="accountID=123456789010\neniID=eni-abc123de\nsrcPort=0\ndstPort=80\nprotocol=6\npackets=20\nbytes=1000\nstart=1418530010\nend=1818530070"]
+//
+// The output format looks like:
+//
+// n1723116139n172311621govpc_accountID="123456789010"govpc_eniID="eni-abc123de"govpc_srcPort="0"govpc_dstPort="80"govpc_protocol="6"color=red
+//
+// where the selected attributes are first sorted consistently. The returned
+// slice contains the ID of nodes in the edge.
+func lineEdgeKey(line string) (string, []string) {
+	parts := strings.SplitN(line, " ", 4)
+	attrs := strings.Split(parts[3][1:len(parts[3])-1], " ")
+	key := bytes.NewBufferString(parts[0])
+	_, _ = key.WriteString(parts[2])
+	selectedAttrs := make([]string, 0, len(keyAttrs))
+	for offset := range attrs {
+		if keyAttrs[strings.Split(attrs[offset], "=")[0]] {
+			selectedAttrs = append(selectedAttrs, attrs[offset])
+		}
+	}
+	sort.Strings(selectedAttrs)
+	for offset := range selectedAttrs {
+		_, _ = key.WriteString(selectedAttrs[offset])
+	}
+	return key.String(), []string{parts[0], parts[2]}
+}
+
+// lineNodeKey returns the left-hand side of n172311622 [label="172.31.16.22"]
+// which is how the go-vpcflow graph writes a node.
+func lineNodeKey(line string) string {
+	return strings.TrimSpace(strings.SplitN(strings.TrimSpace(line), " ", 2)[0])
 }
 
 func (d *DOTDiffer) getGraph(ctx context.Context, out chan io.ReadCloser, err chan error, start, stop time.Time, wg *sync.WaitGroup) {
