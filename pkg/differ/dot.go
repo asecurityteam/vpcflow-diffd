@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
 	radix "github.com/armon/go-radix"
 	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
 )
