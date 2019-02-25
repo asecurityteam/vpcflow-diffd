@@ -3,7 +3,7 @@ package domain
 import (
 	"context"
 
-	"bitbucket.org/atlassian/logevent"
+	"github.com/asecurityteam/logevent"
 )
 
 // LoggerProvider extracts a logger from context.

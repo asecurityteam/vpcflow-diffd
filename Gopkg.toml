@@ -4,7 +4,7 @@
 # for detailed Gopkg.toml documentation.
 
 [[constraint]]
-  name = "bitbucket.org/atlassian/logevent"
+  name = "github.com/asecurityteam/logevent"
   version = "1.0.2"
 
 [[constraint]]
@@ -20,7 +20,7 @@
   revision = "572d9101fe4fdede494f26999a59d09229b7c11b"
 
 [[constraint]]
-  name = "bitbucket.org/atlassian/transport"
+  name = "github.com/asecurityteam/transport"
   version = "^1.1.1"
 
 [prune]

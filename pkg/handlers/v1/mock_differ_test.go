@@ -4,7 +4,7 @@
 package v1
 
 import (
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
+	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
 	context "context"
 	gomock "github.com/golang/mock/gomock"
 	io "io"

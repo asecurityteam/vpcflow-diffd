@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
+	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"

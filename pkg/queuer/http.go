@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
+	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
 )
 
 type payload struct {

@@ -1,7 +1,29 @@
-# vpcflow-diffd #
+<a id="markdown-vpcflow-diffd---a-service-which-compares-vpc-flow-log-graphs" name="vpcflow-diffd---a-service-which-compares-vpc-flow-log-graphs"></a>
+# vpcflow-diffd - A service which compares VPC flow log graphs.#
 
-**A service which compares VPC flow log graphs.**
+*Status: Incubation*
 
+<!-- TOC -->
+
+- [vpcflow-diffd - A service which compares VPC flow log graphs.](#vpcflow-diffd---a-service-which-compares-vpc-flow-log-graphs)
+    - [Overview](#overview)
+    - [Modules](#modules)
+        - [Storage](#storage)
+        - [Marker](#marker)
+        - [Queuer](#queuer)
+        - [Grapher](#grapher)
+        - [HTTP Clients](#http-clients)
+        - [Logging](#logging)
+        - [Stats](#stats)
+        - [ExitSignals](#exitsignals)
+    - [Setup](#setup)
+    - [Contributing](#contributing)
+        - [License](#license)
+        - [Contributing Agreement](#contributing-agreement)
+
+<!-- /TOC -->
+
+<a id="markdown-overview" name="overview"></a>
 ## Overview ##
 
 AWS VPC Flow Logs are a data source by which a team can detect anomalies in
@@ -12,7 +34,7 @@ by vpcflow-diffd.
 
 Graphs are DOT renditions of a digest, or fixed window of time, and are specified
 with a `start` and `stop`. See
-[vpcflow-grapherd](https://bitbucket.org/atlassian/vpcflow-grapherd/src) for more
+[vpcflow-grapherd](https://github.com/asecurityteam/vpcflow-grapherd/src) for more
 information.
 
 This project has two major components: an API to create and fetch diffs, and a worker
@@ -23,6 +45,7 @@ Another, more asynchronous setup would involve running vpcflow-diffd as two serv
 with the API component producing to some event bus, and configuring the event bus to
 POST into the worker component.
 
+<a id="markdown-modules" name="modules"></a>
 ## Modules ##
 
 The service struct in the diffd package contains the modules used by this
@@ -42,6 +65,7 @@ func main() {
 }
 ```
 
+<a id="markdown-storage" name="storage"></a>
 ### Storage ###
 
 This module is responsible for storing and retrieving the diff graphs. The built-in
@@ -50,6 +74,7 @@ storage module uses S3 as the store and can be configured with the
 use a custom storage module, implement the `domain.Storage` interface and set the
 Storage attribute on the `diffd.Service` struct in your `main.go`.
 
+<a id="markdown-marker" name="marker"></a>
 ### Marker ###
 
 As previously described, the project components can be configured to run
@@ -60,6 +85,7 @@ environment variables. To use a custom marker module, implement the `domain.Mark
 interface and set the Marker attribute on the `diffd.Service` struct in your
 `main.go`.
 
+<a id="markdown-queuer" name="queuer"></a>
 ### Queuer ###
 
 This module is responsible for queuing diff jobs which will eventually be consumed
@@ -71,31 +97,34 @@ the diff job will eventually be POSTed to the worker component of the project. T
 use a custom queuer module, implement the `domain.Queuer` interface and set the Queuer
 attribute on the `diffd.Service` struct in your `main.go`.
 
+<a id="markdown-grapher" name="grapher"></a>
 ### Grapher ###
 
 This module is responsible for creating and fetching VPC Flow Log graphs. The
 built-in Grapher can be configured by configuring `GRAPHER_ENDPOINT` to point to a
 running intance of
-[vpcflow-grapherd](https://bitbucket.org/atlassian/vpcflow-grapherd/src). It will
+[vpcflow-grapherd](https://github.com/asecurityteam/vpcflow-grapherd/src). It will
 create two graphs and poll the grapher on an interval specified by
 `GRAPHER_POLLING_INTERVAL`, and will continue to poll until
 `GRAPHER_POLLING_TIMEOUT` is reached.
 
+<a id="markdown-http-clients" name="http-clients"></a>
 ### HTTP Clients ###
 
 There are two clients used in this project. One is the client to be used with the
 default Queuer module. The other is used with the default Grapher module. If no
 clients are provided, a default will be used. This project makes use of the
-[transport](https://bitbucket.org/atlassian/transport) library which provides a thin
+[transport](https://github.com/asecurityteam/transport) library which provides a thin
 layer of configuration on top of the `http.Client` from the standard lib. While the
 HTTP client that is built-in to this project will be sufficient for most uses cases,
 a custom one can be provided by setting the QueuerHTTPClient and GrapherHTTPClient
 attributes on the `diffd.Service` struct in your `main.go`.
 
 
+<a id="markdown-logging" name="logging"></a>
 ### Logging ###
 
-This project uses [logevent](https://bitbucket.org/atlassian/logevent) as its logging
+This project uses [logevent](https://github.com/asecurityteam/logevent) as its logging
 interface. Structured logs that this project emits can be found in the `logs`
 package. This project comes with a couple of default logging implementations that can
 be found in the plugins package. These loggers are injected via HTTP middleware on
@@ -117,6 +146,7 @@ Please note that this project will not run without some sort of logger being
 installed. While it's not recommended, if you wish to omit logging, use the
 `NopLogMiddleware`.
 
+<a id="markdown-stats" name="stats"></a>
 ### Stats ###
 
 This project uses [xstats](https://github.com/rs/xstats) as the stats client. It
@@ -125,16 +155,18 @@ statsd using the datadog tagging extensions. The default backend will send stats
 "localhost:8126". To change the destination or the backend install the
 `CustomStatMiddleware` with your own xstats client.
 
+<a id="markdown-exitsignals" name="exitsignals"></a>
 ### ExitSignals ###
 
 Exit signals in this project are used to signal the service to perform a graceful
 shutdown. The built-in exit signal listens for SIGTERM and SIGINT and signals to the
 main routine to shutdown the service.
 
+<a id="markdown-setup" name="setup"></a>
 ## Setup ##
 
 * configure and deploy
-  [vpcflow-grapherd](https://bitbucket.org/atlassian/vpcflow-grapherd/src)
+  [vpcflow-grapherd](https://github.com/asecurityteam/vpcflow-grapherd/src)
 * create a bucket in AWS to store the created diffs
 * create a bucket in AWS to store progress states for queued diffs
 * setup environment variables
@@ -160,12 +192,15 @@ main routine to shutdown the service.
 
 
 
+<a id="markdown-contributing" name="contributing"></a>
 ## Contributing ##
 
+<a id="markdown-license" name="license"></a>
 ### License ###
 
 This project is licensed under Apache 2.0. See LICENSE.txt for details.
 
+<a id="markdown-contributing-agreement" name="contributing-agreement"></a>
 ### Contributing Agreement ###
 
 Atlassian requires signing a contributor's agreement before we can accept a patch. If

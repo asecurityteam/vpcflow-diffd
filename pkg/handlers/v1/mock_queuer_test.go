@@ -6,7 +6,7 @@ package v1
 import (
 	context "context"
 
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
+	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
 	gomock "github.com/golang/mock/gomock"
 )
 

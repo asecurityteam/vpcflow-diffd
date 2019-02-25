@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
+	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
 	"gonum.org/v1/gonum/graph/formats/dot"
 	"gonum.org/v1/gonum/graph/formats/dot/ast"
 )

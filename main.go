@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"os"
 
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg"
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg/domain"
-	"bitbucket.org/atlassian/vpcflow-diffd/pkg/plugins"
+	"github.com/asecurityteam/vpcflow-diffd/pkg"
+	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
+	"github.com/asecurityteam/vpcflow-diffd/pkg/plugins"
 	"github.com/go-chi/chi"
 )
 
