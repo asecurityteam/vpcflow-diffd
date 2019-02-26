@@ -77,7 +77,7 @@ func (d *DOTDiffer) Diff(ctx context.Context, diff domain.Diff) (io.ReadCloser, 
 		var ok bool
 		stmt, ok = prevNodes[nodeID]
 		if !ok {
-			stmt, _ = nextNodes[nodeID]
+			stmt = nextNodes[nodeID]
 		}
 		g.Stmts = append(g.Stmts, stmt)
 	}
