@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
-	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
