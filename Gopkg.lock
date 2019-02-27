@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:c47f4964978e211c6e566596ec6246c329912ea92e9bb99c00798bb4564c5b09"
+  name = "github.com/armon/go-radix"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1a2de0c21c94309923825da3df33a4381872c795"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:ffadaa3e19072a02b4727002937b7a677973f2eed0a89b4a8c750576339bbaa5"
   name = "github.com/asecurityteam/logevent"
   packages = [
@@ -21,7 +29,7 @@
   version = "1.1.2"
 
 [[projects]]
-  digest = "1:888f2eafc1ffa47557eb8f18a93914bd841592723a8450b269a1e026cc39469a"
+  digest = "1:d4a6151a82bdc82013865367324b9cd86fa21fdee2a53a7dc6c00d27c79d3e81"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -63,8 +71,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "e8b22c9937cae1fee9bc364a88f3752cc4d1ac2f"
-  version = "v1.17.4"
+  revision = "b4d97e9cf75f3815bd694b8e0d6f9d81492c3586"
+  version = "v1.17.5"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -83,12 +91,12 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:b8d8afedc1ea9028d6b8a037a61acaf5bac8ffb1ceb4b285a0af6654bfc62f16"
+  digest = "1:1c70b4d7285f792bd387c1adac08825715147fa210b3d2826ffd2bf56be9455b"
   name = "github.com/go-chi/chi"
   packages = ["."]
   pruneopts = "UT"
-  revision = "1a6bb108ccf279c8dac6f9bad857d773b4f9b421"
-  version = "v4.0.1"
+  revision = "da24bba8dcd4021cafac38724bf10dccc97c3e36"
+  version = "v4.0.2"
 
 [[projects]]
   digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
@@ -168,25 +176,11 @@
   pruneopts = "UT"
   revision = "fe579d43d83210096a79b46dcca0e3721058393a"
 
-[[projects]]
-  digest = "1:d80b316bc51a12717f6760bcaa6c41461e8abb5393a0f77bbc938e65bdc769c0"
-  name = "gonum.org/v1/gonum"
-  packages = [
-    "graph/formats/dot",
-    "graph/formats/dot/ast",
-    "graph/formats/dot/internal/astx",
-    "graph/formats/dot/internal/errors",
-    "graph/formats/dot/internal/lexer",
-    "graph/formats/dot/internal/parser",
-    "graph/formats/dot/internal/token",
-  ]
-  pruneopts = "UT"
-  revision = "572d9101fe4fdede494f26999a59d09229b7c11b"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/armon/go-radix",
     "github.com/asecurityteam/logevent",
     "github.com/asecurityteam/logevent/http",
     "github.com/asecurityteam/transport",
@@ -205,8 +199,6 @@
     "github.com/rs/xstats",
     "github.com/rs/xstats/dogstatsd",
     "github.com/stretchr/testify/assert",
-    "gonum.org/v1/gonum/graph/formats/dot",
-    "gonum.org/v1/gonum/graph/formats/dot/ast",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
