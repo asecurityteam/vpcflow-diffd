@@ -1,46 +1,35 @@
 package main
 
 import (
-	"net/http"
+	"context"
 	"os"
 
-	"github.com/asecurityteam/vpcflow-diffd/pkg"
-	"github.com/asecurityteam/vpcflow-diffd/pkg/domain"
-	"github.com/asecurityteam/vpcflow-diffd/pkg/plugins"
+	"github.com/asecurityteam/runhttp"
+	"github.com/asecurityteam/settings"
+	diffd "github.com/asecurityteam/vpcflow-diffd/pkg"
 	"github.com/go-chi/chi"
 )
 
 func main() {
 	router := chi.NewRouter()
-	middleware := []func(http.Handler) http.Handler{
-		plugins.DefaultLogMiddleware(),
-		plugins.DefaultStatMiddleware(),
-	}
-	service := &diffd.Service{
-		Middleware: middleware,
-	}
+	service := &diffd.Service{}
 	if err := service.BindRoutes(router); err != nil {
 		panic(err.Error())
 	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	source, err := settings.NewEnvSource(os.Environ())
+	if err != nil {
+		panic(err.Error())
 	}
 
-	server := &http.Server{
-		Addr:    ":" + port,
-		Handler: router,
+	// Load the runtime using the Source and Handler.
+	rt, err := runhttp.New(context.Background(), source, router)
+	if err != nil {
+		panic(err.Error())
 	}
 
-	r := &diffd.Runtime{
-		Server: server,
-		ExitSignals: []domain.ExitSignal{
-			plugins.OS,
-		},
-	}
-
-	if err := r.Run(); err != nil {
+	// Run the HTTP server.
+	if err := rt.Run(); err != nil {
 		panic(err.Error())
 	}
 }
