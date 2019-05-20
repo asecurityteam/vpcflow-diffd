@@ -17,7 +17,7 @@ var diffNamespace = uuid.NewSHA1(uuid.Nil, []byte("diff"))
 
 // DiffHandler handles incoming HTTP requests for creating and retrieving new network graph diffs
 type DiffHandler struct {
-	LogProvider domain.LoggerProvider
+	LogProvider domain.LogFn
 	Storage     domain.Storage
 	Queuer      domain.Queuer
 	Marker      domain.Marker

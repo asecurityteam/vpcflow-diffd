@@ -21,6 +21,22 @@
   version = "1.0.4"
 
 [[projects]]
+  branch = "master"
+  digest = "1:fe321de7854c65af149fe7c66a7ed3ad82046902536e1aa41ec509f5fb942426"
+  name = "github.com/asecurityteam/runhttp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "60620809c4931ced5fde6400c2462236cf3e9c16"
+
+[[projects]]
+  branch = "master"
+  digest = "1:391bbf4e67d50d74c1bb7dfad79222181327ff6d9a32324ed022b12051b5d5e8"
+  name = "github.com/asecurityteam/settings"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d4142d59861b3779aeba32111096d43ae940e49d"
+
+[[projects]]
   digest = "1:067d27a5520b7ab98a652f32b33785de2ffc7028e50c722c993e7ee218046a30"
   name = "github.com/asecurityteam/transport"
   packages = ["."]
@@ -99,6 +115,14 @@
   version = "v4.0.2"
 
 [[projects]]
+  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
+  name = "github.com/go-yaml/yaml"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
+
+[[projects]]
   digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
   name = "github.com/golang/mock"
   packages = ["gomock"]
@@ -161,9 +185,20 @@
   version = "v1.11.0"
 
 [[projects]]
-  digest = "1:972c2427413d41a1e06ca4897e8528e5a1622894050e2f527b38ddf0f343f759"
+  digest = "1:08d65904057412fc0270fc4812a1c90c594186819243160dc779a402d4b6d0bc"
+  name = "github.com/spf13/cast"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8c9545af88b134710ab1cd196795e7f2388358d7"
+  version = "v1.3.0"
+
+[[projects]]
+  digest = "1:5da8ce674952566deae4dbc23d07c85caafc6cfa815b0b3e03e41979cedb8750"
   name = "github.com/stretchr/testify"
-  packages = ["assert"]
+  packages = [
+    "assert",
+    "require",
+  ]
   pruneopts = "UT"
   revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
   version = "v1.3.0"
@@ -182,7 +217,8 @@
   input-imports = [
     "github.com/armon/go-radix",
     "github.com/asecurityteam/logevent",
-    "github.com/asecurityteam/logevent/http",
+    "github.com/asecurityteam/runhttp",
+    "github.com/asecurityteam/settings",
     "github.com/asecurityteam/transport",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/awserr",
@@ -196,9 +232,8 @@
     "github.com/go-chi/chi",
     "github.com/golang/mock/gomock",
     "github.com/google/uuid",
-    "github.com/rs/xstats",
-    "github.com/rs/xstats/dogstatsd",
     "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/require",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

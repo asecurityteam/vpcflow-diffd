@@ -19,7 +19,7 @@ type payload struct {
 
 // Produce is a handler which performs the diff job, and stores the diff
 type Produce struct {
-	LogProvider domain.LoggerProvider
+	LogProvider domain.LogFn
 	Marker      domain.Marker
 	Differ      domain.Differ
 	Storage     domain.Storage

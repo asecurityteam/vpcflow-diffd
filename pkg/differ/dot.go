@@ -104,7 +104,7 @@ func (d *DOTDiffer) Diff(ctx context.Context, diff domain.Diff) (io.ReadCloser, 
 		}
 		_, _ = prevSearch.Insert(key, nil)
 	}
-	if err != nil && err != io.EOF {
+	if err != io.EOF {
 		return nil, err
 	}
 
@@ -122,7 +122,7 @@ func (d *DOTDiffer) Diff(ctx context.Context, diff domain.Diff) (io.ReadCloser, 
 		}
 		_, _ = nextSearch.Insert(key, nil)
 	}
-	if err != nil && err != io.EOF {
+	if err != io.EOF {
 		return nil, err
 	}
 
@@ -147,7 +147,7 @@ func (d *DOTDiffer) Diff(ctx context.Context, diff domain.Diff) (io.ReadCloser, 
 			_, _ = output.WriteString("\\ndiff=ADDED\" govpc_diff=\"ADDED\"]\n")
 		}
 	}
-	if err != nil && err != io.EOF {
+	if err != io.EOF {
 		return nil, err
 	}
 
@@ -170,7 +170,7 @@ func (d *DOTDiffer) Diff(ctx context.Context, diff domain.Diff) (io.ReadCloser, 
 			_, _ = output.WriteString("\\ndiff=REMOVED\" govpc_diff=\"REMOVED\"]\n")
 		}
 	}
-	if err != nil && err != io.EOF {
+	if err != io.EOF {
 		return nil, err
 	}
 
