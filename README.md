@@ -1,6 +1,8 @@
 <a id="markdown-vpcflow-diffd---a-service-which-compares-vpc-flow-log-graphs" name="vpcflow-diffd---a-service-which-compares-vpc-flow-log-graphs"></a>
 # vpcflow-diffd - A service which compares VPC flow log graphs.#
 [![GoDoc](https://godoc.org/github.com/asecurityteam/vpcflow-diffd?status.svg)](https://godoc.org/github.com/asecurityteam/vpcflow-diffd)
+[![Build Status](https://travis-ci.com/asecurityteam/vpcflow-diffd.png?branch=master)](https://travis-ci.com/asecurityteam/vpcflow-diffd)
+[![codecov.io](https://codecov.io/github/asecurityteam/vpcflow-diffd/coverage.svg?branch=master)](https://codecov.io/github/asecurityteam/vpcflow-diffd?branch=master)
 
 *Status: Incubation*
 
